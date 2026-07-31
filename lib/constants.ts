@@ -17,7 +17,8 @@ export function shouldUseSecureCookies(hostname?: string) {
     return false;
   }
 
-  return true;
+  // Keep middleware cookie reads aligned with NextAuth (auth.ts useSecureCookies).
+  return getSecureCookiesForAuth();
 }
 
 export function getSecureCookiesForAuth() {
