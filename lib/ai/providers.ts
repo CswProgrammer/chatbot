@@ -1,6 +1,31 @@
-import { customProvider, gateway } from "ai";
+import { deepseek } from "@ai-sdk/deepseek";
+import {
+  customProvider,
+  extractReasoningMiddleware,
+  wrapLanguageModel,
+} from "ai";
 import { isTestEnvironment } from "../constants";
-import { titleModel } from "./models";
+
+const MODEL_ID_MAP: Record<string, string> = {
+  "chat-model": "chat-model",
+  "chat-model-reasoning": "chat-model-reasoning",
+  "deepseek/chat-model": "chat-model",
+  "deepseek/chat-model-reasoning": "chat-model-reasoning",
+  "deepseek/deepseek-v3.2": "chat-model",
+  "moonshotai/kimi-k2.5": "chat-model",
+};
+
+const productionProvider = customProvider({
+  languageModels: {
+    "artifact-model": deepseek("deepseek-chat"),
+    "chat-model": deepseek("deepseek-chat"),
+    "chat-model-reasoning": wrapLanguageModel({
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
+      model: deepseek("deepseek-reasoner"),
+    }),
+    "title-model": deepseek("deepseek-chat"),
+  },
+});
 
 export const myProvider = isTestEnvironment
   ? (() => {
@@ -15,19 +40,16 @@ export const myProvider = isTestEnvironment
         },
       });
     })()
-  : null;
+  : productionProvider;
+
+function resolveProviderKey(modelId: string) {
+  return MODEL_ID_MAP[modelId] ?? modelId;
+}
 
 export function getLanguageModel(modelId: string) {
-  if (isTestEnvironment && myProvider) {
-    return myProvider.languageModel(modelId);
-  }
-
-  return gateway.languageModel(modelId);
+  return myProvider.languageModel(resolveProviderKey(modelId));
 }
 
 export function getTitleModel() {
-  if (isTestEnvironment && myProvider) {
-    return myProvider.languageModel("title-model");
-  }
-  return gateway.languageModel(titleModel.id);
+  return myProvider.languageModel("title-model");
 }
