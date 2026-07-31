@@ -20,9 +20,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create deploy archive
-        run: |
-          tar --exclude=node_modules --exclude=.next --exclude=.git \
-            -czf chatbot-deploy.tgz .
+        run: git archive --format=tar.gz --output=chatbot-deploy.tgz HEAD
 
       - name: Upload archive to server
         uses: appleboy/scp-action@v0.1.7
