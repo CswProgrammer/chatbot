@@ -16,7 +16,7 @@ Configure these in **Settings → Secrets and variables → Actions**:
 | `AUTH_SECRET` | NextAuth secret |
 | `DEEPSEEK_API_KEY` | DeepSeek API key |
 | `POSTGRES_URL` | Postgres connection string |
-| `AUTH_URL` | Public app URL, e.g. `http://82.156.149.118` |
+| `AUTH_URL` | Public app URL, e.g. `http://82.156.149.118:8080` |
 
 ## Server layout
 

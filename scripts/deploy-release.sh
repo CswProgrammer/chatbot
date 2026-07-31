@@ -5,14 +5,21 @@ set -euo pipefail
 APP_DIR="/var/www/chatbot"
 
 configure_nginx() {
-  if [[ ! -d /etc/nginx/conf.d ]]; then
-    return 0
+  local conf_src="$APP_DIR/deploy/nginx.conf"
+
+  if [[ -d /www/server/panel/vhost/nginx ]]; then
+    cp "$conf_src" /www/server/panel/vhost/nginx/chatbot.conf
+    nginx -t
+    /etc/init.d/nginx reload 2>/dev/null || systemctl reload nginx
+  elif [[ -d /etc/nginx/conf.d ]]; then
+    cp "$conf_src" /etc/nginx/conf.d/chatbot.conf
+    nginx -t
+    systemctl enable nginx
+    systemctl restart nginx
   fi
 
-  cp "$APP_DIR/deploy/nginx.conf" /etc/nginx/conf.d/chatbot.conf
-  nginx -t
-  systemctl enable nginx
-  systemctl restart nginx
+  firewall-cmd --permanent --add-port=8080/tcp 2>/dev/null || true
+  firewall-cmd --reload 2>/dev/null || true
 }
 
 ensure_pm2() {
