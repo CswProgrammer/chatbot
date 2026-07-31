@@ -1,6 +1,9 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { withBotId } from "botid/next/config";
 import type { NextConfig } from "next";
 
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 const basePath = process.env.IS_DEMO === "1" ? "/demo" : "";
 
 const nextConfig: NextConfig = {
@@ -49,6 +52,10 @@ const nextConfig: NextConfig = {
   },
   poweredByHeader: false,
   reactCompiler: true,
+  transpilePackages: ["geist"],
+  turbopack: {
+    root: projectRoot,
+  },
 };
 
 export default withBotId(nextConfig);

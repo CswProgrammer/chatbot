@@ -25,7 +25,7 @@ test.describe("Model Selector", () => {
     await searchInput.fill("DeepSeek");
 
     await expect(
-      page.getByRole("option", { name: /DeepSeek V3\.2/ })
+      page.getByRole("option", { name: /DeepSeek Chat/ })
     ).toBeVisible();
   });
 
@@ -47,10 +47,10 @@ test.describe("Model Selector", () => {
     const availableModels = page.getByRole("group", { name: "Available" });
     await expect(availableModels).toBeVisible();
     await expect(
-      availableModels.getByRole("option", { name: /DeepSeek V3\.2/ })
+      availableModels.getByRole("option", { name: /DeepSeek Chat/ })
     ).toBeVisible();
     await expect(
-      availableModels.getByRole("option", { name: /Kimi K2\.5/ })
+      availableModels.getByRole("option", { name: /DeepSeek Reasoner/ })
     ).toBeVisible();
   });
 
@@ -58,9 +58,9 @@ test.describe("Model Selector", () => {
     const modelButton = page.getByTestId("model-selector");
     await modelButton.click();
 
-    await page.getByRole("option", { name: /DeepSeek V3\.2/ }).click();
+    await page.getByRole("option", { name: /DeepSeek Reasoner/ }).click();
 
     await expect(page.getByPlaceholder("Search models...")).not.toBeVisible();
-    await expect(modelButton).toContainText("DeepSeek V3.2");
+    await expect(modelButton).toContainText("DeepSeek Reasoner");
   });
 });
