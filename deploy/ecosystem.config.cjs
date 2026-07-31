@@ -3,7 +3,6 @@
 module.exports = {
   apps: [
     {
-      args: "start -p 3000",
       cwd: "/var/www/chatbot",
       env: {
         HOSTNAME: "0.0.0.0",
@@ -12,9 +11,9 @@ module.exports = {
       },
       exec_mode: "fork",
       instances: 1,
-      max_memory_restart: "512M",
+      max_memory_restart: "768M",
       name: "chatbot",
-      script: "node_modules/next/dist/bin/next",
+      script: "server.js",
       watch: false,
     },
   ],

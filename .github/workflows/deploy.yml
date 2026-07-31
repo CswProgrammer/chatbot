@@ -13,14 +13,65 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Create deploy archive
-        run: git archive --format=tar.gz --output=chatbot-deploy.tgz HEAD
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+        env:
+          HUSKY: 0
+
+      - name: Build application
+        run: pnpm run build
+        env:
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          AUTH_URL: ${{ secrets.AUTH_URL }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+          NODE_ENV: production
+
+      - name: Prepare standalone bundle
+        env:
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          AUTH_URL: ${{ secrets.AUTH_URL }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+        run: |
+          mkdir -p deploy-bundle
+          cp -r .next/standalone/. deploy-bundle/
+          mkdir -p deploy-bundle/.next
+          cp -r .next/static deploy-bundle/.next/static
+          cp -r public deploy-bundle/public
+          mkdir -p deploy-bundle/deploy
+          cp deploy/nginx.conf deploy-bundle/deploy/nginx.conf
+          cp deploy/ecosystem.config.cjs deploy-bundle/deploy/ecosystem.config.cjs
+          mkdir -p deploy-bundle/scripts
+          cp scripts/deploy-release.sh deploy-bundle/scripts/deploy-release.sh
+          chmod +x deploy-bundle/scripts/deploy-release.sh
+          cat > deploy-bundle/.env.local <<EOF
+          AUTH_SECRET=${AUTH_SECRET}
+          DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+          POSTGRES_URL=${POSTGRES_URL}
+          AUTH_URL=${AUTH_URL}
+          NODE_ENV=production
+          PORT=3000
+          HOSTNAME=0.0.0.0
+          EOF
+          tar -czf chatbot-deploy.tgz -C deploy-bundle .
 
       - name: Upload archive to server
         uses: appleboy/scp-action@v0.1.7
@@ -35,23 +86,20 @@ jobs:
 
       - name: Deploy on server
         uses: appleboy/ssh-action@v1.2.0
-        env:
-          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
-          AUTH_URL: ${{ secrets.AUTH_URL }}
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           password: ${{ secrets.DEPLOY_PASSWORD }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT }}
-          command_timeout: 20m
-          envs: AUTH_SECRET,DEEPSEEK_API_KEY,POSTGRES_URL,AUTH_URL
+          command_timeout: 10m
           script: |
             set -euo pipefail
-            mkdir -p /var/www/chatbot
-            tar -xzf /tmp/chatbot-deploy.tgz -C /var/www/chatbot
+            npm config set registry https://registry.npmjs.org/
+            command -v pm2 >/dev/null 2>&1 || npm install -g pm2
+            rm -rf /tmp/chatbot-release /var/www/chatbot
+            mkdir -p /tmp/chatbot-release
+            tar -xzf /tmp/chatbot-deploy.tgz -C /tmp/chatbot-release
+            mv /tmp/chatbot-release /var/www/chatbot
             rm -f /tmp/chatbot-deploy.tgz
-            export SKIP_GIT=1
-            bash /var/www/chatbot/scripts/deploy.sh
+            bash /var/www/chatbot/scripts/deploy-release.sh

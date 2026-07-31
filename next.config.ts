@@ -50,6 +50,7 @@ const nextConfig: NextConfig = {
     },
     incomingRequests: false,
   },
+  output: "standalone",
   poweredByHeader: false,
   reactCompiler: true,
   transpilePackages: ["geist"],
