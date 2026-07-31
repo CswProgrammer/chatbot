@@ -27,7 +27,7 @@ import { editDocument } from "@/lib/ai/tools/edit-document";
 import { getWeather } from "@/lib/ai/tools/get-weather";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
-import { isProductionEnvironment } from "@/lib/constants";
+import { isBotIdEnabled, isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
   deleteChatById,
@@ -41,6 +41,7 @@ import {
 } from "@/lib/db/queries";
 import type { DBMessage } from "@/lib/db/schema";
 import { ChatbotError } from "@/lib/errors";
+import { enrichMessagesWithPdfText } from "@/lib/pdf/enrich-messages";
 import { checkIpRateLimit } from "@/lib/ratelimit";
 import type { ChatMessage, WaitingStatusData } from "@/lib/types";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
@@ -82,7 +83,7 @@ export async function POST(request: Request) {
       requestBody;
 
     const [botIdResult, session] = await Promise.all([
-      checkBotId().catch(() => null),
+      isBotIdEnabled() ? checkBotId().catch(() => null) : Promise.resolve(null),
       auth(),
     ]);
 
@@ -200,7 +201,8 @@ export async function POST(request: Request) {
     const isReasoningModel = capabilities?.reasoning === true;
     const supportsTools = capabilities?.tools === true;
 
-    const modelMessages = await convertToModelMessages(uiMessages);
+    const uiMessagesWithPdf = await enrichMessagesWithPdfText(uiMessages);
+    const modelMessages = await convertToModelMessages(uiMessagesWithPdf);
 
     const stream = createUIMessageStream({
       execute: async ({ writer: dataStream }) => {

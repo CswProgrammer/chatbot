@@ -65,4 +65,10 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withBotId(nextConfig);
+const authUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? "";
+const enableBotId =
+  authUrl === "" ||
+  authUrl.startsWith("https://") ||
+  authUrl.includes("localhost");
+
+export default enableBotId ? withBotId(nextConfig) : nextConfig;

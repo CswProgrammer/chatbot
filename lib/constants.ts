@@ -38,6 +38,20 @@ export function getSecureCookiesForAuth() {
   return true;
 }
 
+/** BotId requires a secure context (HTTPS). Disable on HTTP self-hosted deploys. */
+export function isBotIdEnabled() {
+  if (isDevelopmentEnvironment || isTestEnvironment) {
+    return false;
+  }
+
+  const authUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? "";
+  if (authUrl.startsWith("http://")) {
+    return false;
+  }
+
+  return true;
+}
+
 export const guestRegex = /^guest-\d+$/;
 
 export const DUMMY_PASSWORD = generateDummyPassword();
