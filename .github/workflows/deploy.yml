@@ -40,6 +40,7 @@ jobs:
         env:
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
           AUTH_URL: ${{ secrets.AUTH_URL }}
+          BASE_PATH: /ai
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
           NODE_ENV: production
@@ -67,9 +68,12 @@ jobs:
           DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
           POSTGRES_URL=${POSTGRES_URL}
           AUTH_URL=${AUTH_URL}
+          BASE_PATH=/ai
+          NEXT_PUBLIC_BASE_PATH=/ai
           NODE_ENV=production
           PORT=3001
           HOSTNAME=0.0.0.0
+          NODE_OPTIONS=--max-old-space-size=512
           EOF
           tar -czf chatbot-deploy.tgz -C deploy-bundle .
 

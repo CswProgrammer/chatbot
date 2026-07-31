@@ -4,21 +4,26 @@ import { withBotId } from "botid/next/config";
 import type { NextConfig } from "next";
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
-const basePath = process.env.IS_DEMO === "1" ? "/demo" : "";
+const isDemo = process.env.IS_DEMO === "1";
+const basePath = process.env.BASE_PATH ?? (isDemo ? "/demo" : "");
 
 const nextConfig: NextConfig = {
   ...(basePath
     ? {
-        assetPrefix: "/demo-assets",
+        ...(isDemo ? { assetPrefix: "/demo-assets" } : {}),
         basePath,
-        redirects: async () => [
-          {
-            basePath: false,
-            destination: basePath,
-            permanent: false,
-            source: "/",
-          },
-        ],
+        ...(isDemo
+          ? {
+              redirects: async () => [
+                {
+                  basePath: false,
+                  destination: basePath,
+                  permanent: false,
+                  source: "/",
+                },
+              ],
+            }
+          : {}),
       }
     : {}),
   cacheComponents: true,
@@ -53,6 +58,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   reactCompiler: true,
+  serverExternalPackages: ["pdf-parse", "pdfjs-dist"],
   transpilePackages: ["geist"],
   turbopack: {
     root: projectRoot,
