@@ -57,7 +57,7 @@ configure_nginx() {
 ensure_node_toolchain
 mkdir -p "$APP_DIR"
 
-if [[ ! -d "$APP_DIR/.git" ]]; then
+if [[ "${SKIP_GIT:-}" != "1" && ! -d "$APP_DIR/.git" ]]; then
   git clone "$REPO_URL" "$APP_DIR"
 fi
 
@@ -65,9 +65,11 @@ cd "$APP_DIR"
 
 write_env_file
 
-echo "==> Fetch latest ${BRANCH}"
-git fetch origin "$BRANCH"
-git reset --hard "origin/${BRANCH}"
+if [[ "${SKIP_GIT:-}" != "1" ]]; then
+  echo "==> Fetch latest ${BRANCH}"
+  git fetch origin "$BRANCH"
+  git reset --hard "origin/${BRANCH}"
+fi
 
 echo "==> Install dependencies"
 pnpm install --frozen-lockfile --ignore-scripts
