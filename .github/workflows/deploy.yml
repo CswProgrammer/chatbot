@@ -68,7 +68,7 @@ jobs:
           POSTGRES_URL=${POSTGRES_URL}
           AUTH_URL=${AUTH_URL}
           NODE_ENV=production
-          PORT=3000
+          PORT=3001
           HOSTNAME=0.0.0.0
           EOF
           tar -czf chatbot-deploy.tgz -C deploy-bundle .
@@ -103,6 +103,6 @@ jobs:
             mv /tmp/chatbot-release /var/www/chatbot
             rm -f /tmp/chatbot-deploy.tgz
             bash /var/www/chatbot/scripts/deploy-release.sh
-            curl -sfI http://127.0.0.1:3000/ >/dev/null
+            curl -sfI http://127.0.0.1:3001/ >/dev/null
             curl -sfI http://127.0.0.1:8080/ >/dev/null
             pm2 list
