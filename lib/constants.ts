@@ -8,6 +8,35 @@ export const isTestEnvironment = Boolean(
     process.env.CI_PLAYWRIGHT
 );
 
+export function shouldUseSecureCookies(hostname?: string) {
+  if (isDevelopmentEnvironment || isTestEnvironment) {
+    return false;
+  }
+
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return false;
+  }
+
+  return true;
+}
+
+export function getSecureCookiesForAuth() {
+  if (isDevelopmentEnvironment || isTestEnvironment) {
+    return false;
+  }
+
+  const authUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? "";
+  if (
+    authUrl === "" ||
+    authUrl.includes("localhost") ||
+    authUrl.startsWith("http://")
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 export const guestRegex = /^guest-\d+$/;
 
 export const DUMMY_PASSWORD = generateDummyPassword();
