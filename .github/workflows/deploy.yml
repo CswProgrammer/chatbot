@@ -108,6 +108,7 @@ jobs:
             mv /tmp/chatbot-release /var/www/chatbot
             rm -f /tmp/chatbot-deploy.tgz
             bash /var/www/chatbot/scripts/deploy-release.sh
-            curl -sfI http://127.0.0.1:3001/ >/dev/null
-            curl -sfI http://127.0.0.1:8080/ >/dev/null
+            curl -sfI http://127.0.0.1:3001/ai >/dev/null
+            curl -sfI http://127.0.0.1:8080/ai >/dev/null
+            curl -sfI http://127.0.0.1/ai >/dev/null
             pm2 list
